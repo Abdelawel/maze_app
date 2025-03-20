@@ -32,8 +32,8 @@ const App = () => {
     else if (type === 'S') backgroundColor = 'green';
     else if (type === 'E') backgroundColor = 'red';
     else if (isCurrentPath) backgroundColor = 'yellow';
-    else if (isPath) backgroundColor = 'lightblue';
-    else if (isVisited) backgroundColor = 'rgba(173, 216, 230, 0.4)'; // light blue transparent
+    else if (isPath) backgroundColor = 'blue';
+    else if (isVisited) backgroundColor = 'rgba(25, 31, 52, 0.6)'; // grey transparent
 
     return (
       <div 
@@ -370,162 +370,164 @@ const App = () => {
 
   return (
     <div className="flex flex-col items-center p-4 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-4">Maze Generator & Solver</h1>
-      
-      <div className="mb-6 bg-white p-4 rounded shadow w-full max-w-2xl">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Width:</label>
-            <input 
-              type="number" 
-              min="5"
-              max="51"
-              step="2" 
-              value={width}
-              onChange={(e) => setWidth(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-            />
+      <h1 className="text-3xl font-bold mb-16">Maze Generator & Solver</h1>
+      <div className='flex gap-4'>
+        
+        <div className="mb-6 bg-white p-4 rounded shadow w-full max-w-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Width:</label>
+              <input 
+                type="number" 
+                min="5"
+                max="51"
+                step="2" 
+                value={width}
+                onChange={(e) => setWidth(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Height:</label>
+              <input 
+                type="number" 
+                min="5"
+                max="51"
+                step="2" 
+                value={height}
+                onChange={(e) => setHeight(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Algorithm:</label>
+              <select 
+                value={algorithm}
+                onChange={(e) => setAlgorithm(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded"
+              >
+                <option value="bfs">BFS (Breadth-First Search)</option>
+                <option value="dfs">DFS (Depth-First Search)</option>
+                <option value="astar">A* Algorithm</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Height:</label>
-            <input 
-              type="number" 
-              min="5"
-              max="51"
-              step="2" 
-              value={height}
-              onChange={(e) => setHeight(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-            />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Animation Speed:</label>
+              <input
+                type="range"
+                min="1"
+                max="50"
+                value={animationSpeed}
+                onChange={(e) => setAnimationSpeed(parseInt(e.target.value))}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Slow</span>
+                <span>Fast</span>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="showAnimation"
+                checked={showAnimation}
+                onChange={(e) => setShowAnimation(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="showAnimation" className="text-sm font-medium text-gray-700">
+                Show step-by-step animation
+              </label>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Algorithm:</label>
-            <select 
-              value={algorithm}
-              onChange={(e) => setAlgorithm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
+          
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button 
+              onClick={generateMaze} 
+              disabled={isGenerating}
+              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded disabled:bg-blue-300"
             >
-              <option value="bfs">BFS (Breadth-First Search)</option>
-              <option value="dfs">DFS (Depth-First Search)</option>
-              <option value="astar">A* Algorithm</option>
-            </select>
+              {isGenerating ? 'Generating...' : 'Generate New Maze'}
+            </button>
+            <button 
+              onClick={solveMaze} 
+              disabled={!maze || isSolving}
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded disabled:bg-green-300"
+            >
+              {isSolving ? 'Solving...' : `Solve with ${algorithm.toUpperCase()}`}
+            </button>
           </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Animation Speed:</label>
-            <input
-              type="range"
-              min="1"
-              max="50"
-              value={animationSpeed}
-              onChange={(e) => setAnimationSpeed(parseInt(e.target.value))}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-gray-500">
-              <span>Slow</span>
-              <span>Fast</span>
+          
+          {(finalPath || isSolving) && (
+            <div className="mt-4 p-3 bg-gray-100 rounded">
+              <h3 className="font-semibold">Solution Stats:</h3>
+              {finalPath && <p>Final path length: {stats.pathLength} steps</p>}
+              {finalPath && <p>Solving time: {stats.solveTime} seconds</p>}
+              {isSolving ? <p>Exploring maze... Please wait</p> : null}
             </div>
-          </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="showAnimation"
-              checked={showAnimation}
-              onChange={(e) => setShowAnimation(e.target.checked)}
-              className="mr-2"
-            />
-            <label htmlFor="showAnimation" className="text-sm font-medium text-gray-700">
-              Show step-by-step animation
-            </label>
-          </div>
+          )}
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4">
-          <button 
-            onClick={generateMaze} 
-            disabled={isGenerating}
-            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded disabled:bg-blue-300"
-          >
-            {isGenerating ? 'Generating...' : 'Generate New Maze'}
-          </button>
-          <button 
-            onClick={solveMaze} 
-            disabled={!maze || isSolving}
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded disabled:bg-green-300"
-          >
-            {isSolving ? 'Solving...' : `Solve with ${algorithm.toUpperCase()}`}
-          </button>
-        </div>
-        
-        {(finalPath || isSolving) && (
-          <div className="mt-4 p-3 bg-gray-100 rounded">
-            <h3 className="font-semibold">Solution Stats:</h3>
-            {finalPath && <p>Final path length: {stats.pathLength} steps</p>}
-            {finalPath && <p>Solving time: {stats.solveTime} seconds</p>}
-            {isSolving ? <p>Exploring maze... Please wait</p> : null}
-          </div>
-        )}
-      </div>
-      
-      <div className="overflow-auto p-4 bg-white rounded shadow">
-        {maze && (
-          <div className="inline-block">
-            <div className="flex gap-4 mb-4">
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-green-500 mr-2"></div>
-                <span className="text-sm">Start</span>
+        <div className="overflow-auto p-4 bg-white rounded shadow">
+          {maze && (
+            <div className="inline-block">
+              <div className="flex gap-4 mb-4">
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-green-500 mr-2"></div>
+                  <span className="text-sm">Start</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-red-500 mr-2"></div>
+                  <span className="text-sm">End</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-yellow-300 mr-2"></div>
+                  <span className="text-sm">Current Path</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-blue-500 mr-2"></div>
+                  <span className="text-sm">Final Path</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-gray-300 mr-2"></div>
+                  <span className="text-sm">Visited</span>
+                </div>
               </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-red-500 mr-2"></div>
-                <span className="text-sm">End</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-yellow-300 mr-2"></div>
-                <span className="text-sm">Current Path</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-blue-200 mr-2"></div>
-                <span className="text-sm">Final Path</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-blue-100 mr-2"></div>
-                <span className="text-sm">Visited</span>
-              </div>
+              
+              {maze.grid.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex">
+                  {row.map((cell, colIndex) => {
+                    const pos = [rowIndex, colIndex];
+                    const posKey = posToString(pos);
+                    // Check if the cell is on the current exploring path
+                    const isOnCurrentPath = currentPath.some(
+                      ([r, c]) => r === rowIndex && c === colIndex
+                    );
+                    // Check if the cell is on the final solution path
+                    const isOnFinalPath = finalPath && finalPath.some(
+                      ([r, c]) => r === rowIndex && c === colIndex
+                    );
+                    // Check if the cell has been visited during exploration
+                    const isVisited = visitedCells.has(posKey);
+                    
+                    return (
+                      <Cell 
+                        key={`${rowIndex}-${colIndex}`} 
+                        type={cell} 
+                        isPath={isOnFinalPath && cell !== 'S' && cell !== 'E'} 
+                        isVisited={isVisited && !isOnCurrentPath && !isOnFinalPath && cell !== 'S' && cell !== 'E'}
+                        isCurrentPath={isOnCurrentPath && !isOnFinalPath && cell !== 'S' && cell !== 'E'}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
             </div>
-            
-            {maze.grid.map((row, rowIndex) => (
-              <div key={rowIndex} className="flex">
-                {row.map((cell, colIndex) => {
-                  const pos = [rowIndex, colIndex];
-                  const posKey = posToString(pos);
-                  // Check if the cell is on the current exploring path
-                  const isOnCurrentPath = currentPath.some(
-                    ([r, c]) => r === rowIndex && c === colIndex
-                  );
-                  // Check if the cell is on the final solution path
-                  const isOnFinalPath = finalPath && finalPath.some(
-                    ([r, c]) => r === rowIndex && c === colIndex
-                  );
-                  // Check if the cell has been visited during exploration
-                  const isVisited = visitedCells.has(posKey);
-                  
-                  return (
-                    <Cell 
-                      key={`${rowIndex}-${colIndex}`} 
-                      type={cell} 
-                      isPath={isOnFinalPath && cell !== 'S' && cell !== 'E'} 
-                      isVisited={isVisited && !isOnCurrentPath && !isOnFinalPath && cell !== 'S' && cell !== 'E'}
-                      isCurrentPath={isOnCurrentPath && !isOnFinalPath && cell !== 'S' && cell !== 'E'}
-                    />
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </div>  
     </div>
   );
 };
